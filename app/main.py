@@ -1,7 +1,9 @@
 from typing import Union
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 
+from uvicorn import Config, Server
+
+from config import settings
 
 app = FastAPI()
 
@@ -13,9 +15,20 @@ async def health_check():
         "detail": "ok",
         "result": "working"
     }
-    return JSONResponse(content=response)
+    return response
 
 
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
+
+
+if __name__ == "__main__":
+    server = Server(
+        Config(
+            app,
+            host=settings.SERVER_HOST,
+            port=settings.SERVER_PORT,
+        ),
+    )
+    server.run()
