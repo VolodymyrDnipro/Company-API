@@ -5,16 +5,17 @@ FROM python:3.10
 WORKDIR /app
 
 # Копирование зависимостей в контейнер
-COPY ../requirements.txt .
+COPY .env requirements.txt /app/
 
 # Установка зависимостей
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Копирование остальных файлов проекта в контейнер
-COPY .. .
+COPY . /app
 
 # Открытие порта, на котором работает ваше приложение
-EXPOSE 8080
+EXPOSE 8000
 
 # Команда, выполняемая при запуске контейнера
+#CMD ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"]
 CMD ["python", "main.py"]
