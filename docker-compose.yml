@@ -15,6 +15,13 @@ services:
       - '8000:8000'
     volumes:
       - .:/home/appuser/app
+    networks:
+      - app_network
+    depends_on:
+      database:
+        condition: service_healthy
+      redis_db:
+        condition: service_healthy
 
   tests:
     build:
@@ -27,6 +34,8 @@ services:
     volumes:
       - .:/home/appuser/app
     command: ["pytest"]
+    networks:
+      - app_network
 
   redis_db:
     container_name: redis_db
@@ -40,6 +49,11 @@ services:
       - redis-data:/var/lib/redis/data
     healthcheck:
       test: ["CMD", "redis-cli", "-h", "localhost", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app_network
 
   database:
     container_name: postgres
@@ -49,15 +63,26 @@ services:
       - POSTGRES_DB=db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data
     volumes:
       - database-data:/var/lib/postgresql/data
     expose:
       - 5432
     ports:
       - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app_network
 
+
+networks:
+  app_network:
+    driver: bridge
 
 volumes:
   redis-data:
   database-data:
-
