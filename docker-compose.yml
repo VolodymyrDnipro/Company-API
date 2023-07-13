@@ -1,7 +1,6 @@
 version: "3.10"
 
 services:
-
   web:
     build:
       context: .
@@ -9,8 +8,11 @@ services:
     image: app_fastapi:0.0.1-dev
     container_name: app_fastapi
     command: bash docker/runserver.sh
+    restart: always
     env_file:
-      - .env
+      - '.env'
+    ports:
+      - '8000:8000'
     volumes:
       - .:/home/appuser/app
 
@@ -24,4 +26,38 @@ services:
       - .env
     volumes:
       - .:/home/appuser/app
-    command: [ "pytest" ]
+    command: ["pytest"]
+
+  redis_db:
+    container_name: redis_db
+    image: redis:7.0-alpine
+    restart: on-failure
+    expose:
+      - 6379
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/var/lib/redis/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "ping"]
+
+  database:
+    container_name: postgres
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    ports:
+      - "5433:5432"
+
+
+volumes:
+  redis-data:
+  database-data:
+
