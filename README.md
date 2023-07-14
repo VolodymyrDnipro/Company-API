@@ -34,11 +34,22 @@ sudo docker compose run database
 
 ## Usage
 
-To run the FastAPI application, execute the following command:
+1.To run the FastAPI application, execute the following command:
 
 ```bash
 uvicorn main:app --reload
 ```
+2.Create a migration:
+```bash
+alembic --config db/alembic.ini revision --autogenerate -m "create_user_table"
+```
+3.Applying migrations:
+```bash
+alembic --config db/alembic.ini upgrade head
+```
+
+
+
 ## Clean cash & other
 1. Stop and remove all running Docker containers:
 ```bash

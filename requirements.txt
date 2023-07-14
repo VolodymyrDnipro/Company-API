@@ -28,3 +28,5 @@ tomli==2.0.1
 typing_extensions==4.7.1
 utils==1.0.1
 uvicorn==0.22.0
+
+alembic~=1.11.1
