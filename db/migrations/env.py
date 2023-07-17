@@ -1,11 +1,11 @@
-from log.config import fileConfig
+from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
 from config import settings
-from db.models.models import Base
+from db.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,6 +21,7 @@ config.set_section_option(section, "DB_PASSWORD", settings.DB_PASSWORD)
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
+
 
 # add your model's MetaData object here
 # for 'autogenerate' support

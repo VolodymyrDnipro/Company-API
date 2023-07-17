@@ -1,18 +1,11 @@
 import uvicorn
 
-from typing import Union
 from fastapi import FastAPI
+from fastapi.routing import APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from log import logger
-
-# Запись логов
-logger.debug("Debug message")
-logger.info("Info message")
-logger.warning("Warning message")
-logger.error("Error message")
-
+from routers.user_controllers import user_router
 
 app = FastAPI()
 
@@ -30,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def health_check():
     response = {
@@ -40,10 +34,12 @@ async def health_check():
     return response
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+# create the instance for the routes
+main_api_router = APIRouter()
 
+# set routes to the app instance
+main_api_router.include_router(user_router, prefix="/user", tags=["user"])
+app.include_router(main_api_router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host=settings.SERVER_HOST, port=settings.SERVER_PORT, log_level="info")
