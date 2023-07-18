@@ -1,11 +1,16 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
+from envparse import Env
 
 load_dotenv()
+env = Env()
+
+REAL_DATABASE_URL = env.str("REAL_DATABASE_URL", default="postgresql+asyncpg://postgres:postgres@postgres:5432/db")
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+    LOG_LEVEL: str = "DEBUG"
 
     SERVER_PORT: int
     SERVER_HOST: str
@@ -16,7 +21,6 @@ class Settings(BaseSettings):
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
-    DATABASE_ENDPOINT: str
 
     DATABASE_MAX_CONNECTIONS: int
     DATABASE_CONNECTION_RECYCLE: int

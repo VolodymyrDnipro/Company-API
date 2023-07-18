@@ -1,30 +1,42 @@
 import asyncio_redis
-import asyncpg
+import config
+from typing import Generator
 
-from config import settings
-
-
-async def open_redis_connection():
-    connection = await asyncio_redis.Connection.create(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-    return connection
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker, Session
+from fastapi import Depends
 
 
-async def close_redis_connection(connection):
-    connection.close()
-    await connection.wait_closed()
+async def get_redis_client() -> asyncio_redis.Connection:
+    """Dependency for getting Redis client"""
+    connection = await asyncio_redis.Connection.create(host='localhost', port=6379)
+    try:
+        yield connection
+    finally:
+        connection.close()
+        await connection.wait_closed()
 
 
-async def open_postgres_connection():
-    connection = await asyncpg.connect(
-        user=settings.DB_USER,
-        password=settings.DB_PASSWORD,
-        host=settings.DB_HOST,
-        port=settings.DB_PORT,
-        database=settings.DB_NAME
-    )
-    return connection
+# create async engine for interaction with database
+engine = create_async_engine(
+    config.REAL_DATABASE_URL,
+    future=True,
+    echo=True,
+    execution_options={"isolation_level": "AUTOCOMMIT"},
+)
+
+# create session for the interaction with database
+async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
-async def close_postgres_connection(connection):
-    await connection.close()
+async def get_db() -> Generator:
+    """Dependency for getting async session"""
+    try:
+        session: AsyncSession = async_session()
+        yield session
+    finally:
+        await session.close()
 
+
+async def get_session(db: Session = Depends(get_db)):
+    return db
