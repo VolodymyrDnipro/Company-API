@@ -1,10 +1,4 @@
-import uuid
-
-from sqlalchemy import Boolean
-from sqlalchemy import Column
-from sqlalchemy import String
-from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Boolean, Column, String, Integer
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -13,7 +7,7 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
 
-    user_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     surname = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)

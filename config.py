@@ -5,7 +5,7 @@ from envparse import Env
 load_dotenv()
 env = Env()
 
-REAL_DATABASE_URL = env.str("REAL_DATABASE_URL", default="postgresql+asyncpg://postgres:postgres@localhost:5432/postgres",)
+REAL_DATABASE_URL = env.str("REAL_DATABASE_URL", default="postgresql+asyncpg://postgres:postgres@postgres:5432/db")
 
 
 class Settings(BaseSettings):

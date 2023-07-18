@@ -1,5 +1,4 @@
 import re
-import uuid
 from typing import Optional, List
 
 from fastapi import HTTPException
@@ -16,10 +15,10 @@ class TunedModel(BaseModel):
 
 
 class ShowUser(TunedModel):
-    user_id: uuid.UUID
+    user_id: int
     name: str
     surname: str
-    email: EmailStr
+    email: str
     is_active: bool
 
 
@@ -30,7 +29,7 @@ class ShowAllUsers(BaseModel):
 class UserCreate(BaseModel):
     name: str = Field(..., description="Name of the user")
     surname: str = Field(..., description="Surname of the user")
-    email: EmailStr = Field(..., description="Email of the user")
+    email: str = Field(..., description="Email of the user")
     password: str = Field(..., description="Password of the user")
 
     @field_validator("name")
@@ -51,17 +50,17 @@ class UserCreate(BaseModel):
 
 
 class DeleteUserResponse(BaseModel):
-    deleted_user_id: uuid.UUID
+    deleted_user_id: int
 
 
 class UpdatedUserResponse(BaseModel):
-    updated_user_id: uuid.UUID
+    updated_user_id: int
 
 
 class UpdateUserRequest(BaseModel):
     name: Optional[constr(min_length=1)] = Field(None, description="Updated name of the user")
     surname: Optional[constr(min_length=1)] = Field(None, description="Updated surname of the user")
-    email: Optional[EmailStr] = Field(None, description="Updated email of the user")
+    email: Optional[str] = Field(None, description="Updated email of the user")
 
     @field_validator("name")
     def validate_name(cls, value):

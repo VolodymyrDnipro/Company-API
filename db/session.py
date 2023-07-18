@@ -2,9 +2,9 @@ import asyncio_redis
 import config
 from typing import Generator
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker, Session
+from fastapi import Depends
 
 
 async def get_redis_client() -> asyncio_redis.Connection:
@@ -36,3 +36,7 @@ async def get_db() -> Generator:
         yield session
     finally:
         await session.close()
+
+
+async def get_session(db: Session = Depends(get_db)):
+    return db

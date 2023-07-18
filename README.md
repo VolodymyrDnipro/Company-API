@@ -13,23 +13,31 @@ git clone https://github.com/VolodymyrDnipro/Meduzzen_intership_backend.git
 
 3. Build the Docker image using the docker build command:
 ```bash
-sudo docker compose up
+docker compose up
 ``` 
-4. Run a container from the created image:
+## Clean cash & other
+1. Stop and remove all running Docker containers:
 ```bash
-sudo docker compose run web
-``` 
-5. Run a container with tests from the created image:
-```bash
-sudo docker compose run tests
+docker stop $(docker ps -a -q)
 ```
-6. Run a Redis from the created image:
 ```bash
-sudo docker compose run redis_db
+docker rm $(docker ps -a -q)
 ```
-7. Run a PostgresSql from the created image:
+2. Remove all Docker images:
 ```bash
-sudo docker compose run database
+docker rmi $(docker images -a -q)
+```
+3. Clean up unused Docker volumes:
+```bash
+docker volume prune
+```
+4. Remove unused Docker networks:
+```bash
+docker network prune
+```
+5. Remove unused Docker cache and dangling images:
+```bash
+docker system prune -a
 ```
 
 ## Usage
@@ -47,32 +55,3 @@ alembic --config db/alembic.ini revision --autogenerate -m "create_user_table"
 ```bash
 alembic --config db/alembic.ini upgrade head
 ```
-
-
-
-## Clean cash & other
-1. Stop and remove all running Docker containers:
-```bash
-sudo docker stop $(docker ps -a -q)
-```
-```bash
-sudo docker rm $(docker ps -a -q)
-```
-2. Remove all Docker images:
-```bash
-sudo docker rmi $(docker images -a -q)
-```
-3. Clean up unused Docker volumes:
-```bash
-sudo docker volume prune
-```
-4. Remove unused Docker networks:
-```bash
-sudo docker network prune
-```
-5. Remove unused Docker cache and dangling images:
-```bash
-sudo docker system prune -a
-```
-
-

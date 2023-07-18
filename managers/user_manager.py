@@ -1,63 +1,36 @@
-from typing import Union, List
-from uuid import UUID
+from typing import TypeVar, Generic, List, Type
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
-from schemas.users import ShowUser
-from schemas.users import UserCreate
-from db.dals import UserDAL
-from db.models import User
-from hashing import Hasher
+ModelType = TypeVar("ModelType")
 
 
-async def _create_new_user(body: UserCreate, session) -> ShowUser:
-    async with session.begin():
-        user_dal = UserDAL(session)
-        user = await user_dal.create_user(
-            name=body.name,
-            surname=body.surname,
-            email=body.email,
-            hashed_password=Hasher.get_password_hash(body.password),
-        )
-        return ShowUser(
-            user_id=user.user_id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            is_active=user.is_active,
-        )
+class CRUDBase(Generic[ModelType]):
+    def __init__(self, model: Type[ModelType], session: AsyncSession):
+        self.model = model
+        self.session = session
 
+    async def get_all(self) -> List[ModelType]:
+        stmt = select(self.model)
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
 
-async def _delete_user(user_id, session) -> Union[UUID, None]:
-    async with session.begin():
-        user_dal = UserDAL(session)
-        deleted_user_id = await user_dal.delete_user(
-            user_id=user_id,
-        )
-        return deleted_user_id
+    async def get_by_id(self, model_id: int) -> ModelType:
+        query = await self.session.execute(select(self.model).filter(self.model.user_id == model_id))
+        return query.scalar_one()
 
+    async def create(self, obj: ModelType) -> ModelType:
+        self.session.add(obj)
+        await self.session.commit()
+        return obj
 
-async def _update_user(
-        updated_user_params: dict, user_id: UUID, session
-) -> Union[UUID, None]:
-    async with session.begin():
-        user_dal = UserDAL(session)
-        updated_user_id = await user_dal.update_user(
-            user_id=user_id, **updated_user_params
-        )
-        return updated_user_id
+    async def update(self, obj: ModelType, update_data: dict) -> ModelType:
+        for key, value in update_data.items():
+            setattr(obj, key, value)
+        await self.session.refresh(obj)
+        await self.session.commit()
+        return obj
 
-
-async def _get_user_by_id(user_id, session) -> Union[User, None]:
-    async with session.begin():
-        user_dal = UserDAL(session)
-        user = await user_dal.get_user_by_id(
-            user_id=user_id,
-        )
-        if user is not None:
-            return user
-
-
-async def _get_users_all(session) -> List[User]:
-    async with session.begin():
-        user_dal = UserDAL(session)
-        users = await user_dal.get_all_users()
-        return users
+    async def delete(self, obj: ModelType):
+        await self.session.delete(obj)
+        await self.session.commit()
