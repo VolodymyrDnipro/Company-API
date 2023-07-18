@@ -18,7 +18,7 @@ class ShowUser(TunedModel):
     user_id: int
     name: str
     surname: str
-    email: str
+    email: EmailStr
     is_active: bool
 
 
@@ -29,7 +29,7 @@ class ShowAllUsers(BaseModel):
 class UserCreate(BaseModel):
     name: str = Field(..., description="Name of the user")
     surname: str = Field(..., description="Surname of the user")
-    email: str = Field(..., description="Email of the user")
+    email: EmailStr = Field(..., description="Email of the user")
     password: str = Field(..., description="Password of the user")
 
     @field_validator("name")
@@ -60,7 +60,7 @@ class UpdatedUserResponse(BaseModel):
 class UpdateUserRequest(BaseModel):
     name: Optional[constr(min_length=1)] = Field(None, description="Updated name of the user")
     surname: Optional[constr(min_length=1)] = Field(None, description="Updated surname of the user")
-    email: Optional[str] = Field(None, description="Updated email of the user")
+    email: Optional[EmailStr] = Field(None, description="Updated email of the user")
 
     @field_validator("name")
     def validate_name(cls, value):

@@ -15,6 +15,10 @@ git clone https://github.com/VolodymyrDnipro/Meduzzen_intership_backend.git
 ```bash
 docker compose up
 ``` 
+4. Build the Docker image using the docker build command:
+```bash
+docker compose run database
+``` 
 ## Clean cash & other
 1. Stop and remove all running Docker containers:
 ```bash

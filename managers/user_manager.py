@@ -27,9 +27,9 @@ class CRUDBase(Generic[ModelType]):
     async def update(self, obj: ModelType, update_data: dict) -> ModelType:
         for key, value in update_data.items():
             setattr(obj, key, value)
-        await self.session.refresh(obj)
+        merged_obj = await self.session.merge(obj)
         await self.session.commit()
-        return obj
+        return merged_obj
 
     async def delete(self, obj: ModelType):
         await self.session.delete(obj)
