@@ -6,6 +6,9 @@ load_dotenv()
 env = Env()
 
 REAL_DATABASE_URL = env.str("REAL_DATABASE_URL", default="postgresql+asyncpg://postgres:postgres@postgres:5432/db")
+ACCESS_TOKEN_EXPIRE_MINUTES: int = env.int("ACCESS_TOKEN_EXPIRE_MINUTES", default=30)
+SECRET_KEY: str = env.str("SECRET_KEY", default="cAtwa1kkEy")
+ALGORITHM: str = env.str("ALGORITHM", default="HS256")
 
 
 class Settings(BaseSettings):
