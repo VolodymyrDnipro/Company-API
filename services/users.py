@@ -1,6 +1,6 @@
 from typing import List
 from db.models.users import User
-from hashing import Hasher
+from utils.hashing import Hasher
 from managers.user_manager import CRUDBase
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
@@ -9,16 +9,13 @@ from schemas.users import UserCreate, UpdateUserRequest
 
 class UsersService:
     def __init__(self, session: AsyncSession):
-        self.session = session
         self.user_crud = CRUDBase[User](User, session)
 
     async def get_all_users(self) -> List[User]:
         return await self.user_crud.get_all()
 
     async def get_user_by_id(self, user_id: int) -> User:
-        user = await self.user_crud.get_by_id(user_id)
-        if user is None:
-            raise HTTPException(status_code=404, detail="User not found")
+        user = await self.user_crud.get_by_field(user_id, field_name='user_id')
         return user
 
     async def create_user(self, user_data: UserCreate) -> User:
@@ -29,7 +26,7 @@ class UsersService:
         return created_user
 
     async def update_user(self, user_id: int, user_data: UpdateUserRequest) -> User:
-        existing_user = await self.user_crud.get_by_id(user_id)
+        existing_user = await self.user_crud.get_by_field(user_id, field_name='user_id')
         if existing_user is None:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -37,7 +34,7 @@ class UsersService:
         return updated_user
 
     async def delete_user(self, user_id: int) -> None:
-        existing_user = await self.user_crud.get_by_id(user_id)
+        existing_user = await self.user_crud.get_by_field(user_id, field_name='user_id')
         if existing_user is None:
             raise HTTPException(status_code=404, detail="User not found")
 

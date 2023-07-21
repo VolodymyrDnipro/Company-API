@@ -9,9 +9,9 @@ services:
     container_name: app_fastapi
     command: bash docker/runserver.sh
     restart: always
-#    environment:
-#      - DB_HOST=localhost
-#      - DB_PORT=5432
+    environment:
+      - DB_HOST=localhost
+      - DB_PORT=5432
     env_file:
       - '.env'
     ports:

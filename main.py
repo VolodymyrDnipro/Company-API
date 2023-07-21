@@ -5,7 +5,8 @@ from fastapi.routing import APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from api.routers.users import user_router
+from api.routers.users import users_router
+from api.routers.auth import auth_router
 
 app = FastAPI()
 
@@ -38,8 +39,10 @@ async def health_check():
 main_api_router = APIRouter()
 
 # set routes to the app instance
-main_api_router.include_router(user_router, prefix="/user", tags=["user"])
+main_api_router.include_router(auth_router, tags=["Auth"])
+main_api_router.include_router(users_router, tags=["User"])
 app.include_router(main_api_router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host=settings.SERVER_HOST, port=settings.SERVER_PORT, log_level="info")
+

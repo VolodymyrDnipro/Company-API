@@ -60,7 +60,6 @@ class UpdatedUserResponse(BaseModel):
 class UpdateUserRequest(BaseModel):
     name: Optional[constr(min_length=1)] = Field(None, description="Updated name of the user")
     surname: Optional[constr(min_length=1)] = Field(None, description="Updated surname of the user")
-    email: Optional[EmailStr] = Field(None, description="Updated email of the user")
 
     @field_validator("name")
     def validate_name(cls, value):
@@ -77,8 +76,3 @@ class UpdateUserRequest(BaseModel):
                 status_code=422, detail="Surname should contains only letters"
             )
         return value
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str

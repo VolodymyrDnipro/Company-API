@@ -1,6 +1,7 @@
 from typing import TypeVar, Generic, List, Type
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import cast, String
 
 ModelType = TypeVar("ModelType")
 
@@ -15,9 +16,11 @@ class CRUDBase(Generic[ModelType]):
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def get_by_id(self, model_id: int) -> ModelType:
-        query = await self.session.execute(select(self.model).filter(self.model.user_id == model_id))
-        return query.scalar_one()
+    async def get_by_field(self, model_value, field_name: str) -> ModelType:
+        filter_field = getattr(self.model, field_name)
+        stmt = select(self.model).filter(cast(filter_field, String) == str(model_value))
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
 
     async def create(self, obj: ModelType) -> ModelType:
         self.session.add(obj)
