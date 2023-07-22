@@ -1,5 +1,6 @@
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from managers.user_manager import CRUDBase
 from db.models.users import User
 from utils.hashing import Hasher
