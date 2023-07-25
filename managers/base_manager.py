@@ -17,6 +17,7 @@ class CRUDBase(Generic[ModelType]):
         return result.scalars().all()
 
     async def get_by_field(self, model_value, field_name: str) -> ModelType:
+        print(self.model)
         filter_field = getattr(self.model, field_name)
         stmt = select(self.model).filter(cast(filter_field, String) == str(model_value))
         result = await self.session.execute(stmt)

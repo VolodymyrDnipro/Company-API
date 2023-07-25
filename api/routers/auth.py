@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Body
 
 from schemas.users import ShowUser
 from schemas.auth import Token
@@ -10,7 +10,7 @@ auth_router = APIRouter()
 
 
 @auth_router.post("/auth/login", response_model=Token)
-async def login(email: str, password: str, auth_service: AuthService = Depends(get_auth_service)):
+async def login(email: str = Body(...), password: str = Body(...), auth_service: AuthService = Depends(get_auth_service)):
     user = await auth_service.authenticate_user(email, password)
     if not user:
         raise HTTPException(

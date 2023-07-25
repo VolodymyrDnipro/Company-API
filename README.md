@@ -53,7 +53,7 @@ uvicorn main:app --reload
 ```
 2.Create a migration:
 ```bash
-alembic --config db/alembic.ini revision --autogenerate -m "create_user_table"
+alembic --config db/alembic.ini revision --autogenerate -m "create_table"
 ```
 3.Applying migrations:
 ```bash
