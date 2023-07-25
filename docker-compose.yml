@@ -20,43 +20,29 @@ services:
       - .:/home/appuser/app
     networks:
       - app_network
-    depends_on:
-      database:
-        condition: service_healthy
-      redis_db:
-        condition: service_healthy
+#    depends_on:
+#      database:
+#        condition: service_healthy
+#      redis_db:
+#        condition: service_healthy
 
-  tests:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    image: app_fastapi_tests:0.0.1-dev
-    container_name: app_fastapi_tests
-    env_file:
-      - .env
-    volumes:
-      - .:/home/appuser/app
-    command: ["pytest"]
-    networks:
-      - app_network
-
-  redis_db:
-    container_name: redis_db
-    image: redis:7.0-alpine
-    restart: on-failure
-    expose:
-      - 6379
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/var/lib/redis/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-h", "localhost", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - app_network
+#  redis_db:
+#    container_name: redis_db
+#    image: redis:7.0-alpine
+#    restart: on-failure
+#    expose:
+#      - 6379
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - redis-data:/var/lib/redis/data
+#    healthcheck:
+#      test: ["CMD", "redis-cli", "-h", "localhost", "ping"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#    networks:
+#      - app_network
 
   database:
     container_name: postgres
@@ -78,11 +64,46 @@ services:
     networks:
       - app_network
 
+  tests:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: app_fastapi_tests:0.0.1-dev
+    container_name: app_fastapi_tests
+    env_file:
+      - .env
+    volumes:
+      - .:/home/appuser/app
+    command: ["pytest"]
+    networks:
+      - app_network
+    depends_on:
+          database_test:
+            condition: service_healthy
+
+  database_test:
+    container_name: postgres_test
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=db_test
+      - POSTGRES_USER=postgres_test
+      - POSTGRES_PASSWORD=postgres_test
+    ports:
+      - "5433:5432"
+    networks:
+      - app_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 
 networks:
   app_network:
     driver: bridge
 
 volumes:
-  redis-data:
+#  redis-data:
   database-data:

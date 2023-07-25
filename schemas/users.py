@@ -2,7 +2,7 @@ import re
 from typing import Optional, List
 
 from fastapi import HTTPException
-from pydantic import BaseModel, field_validator, constr, EmailStr, validator, Field
+from pydantic import BaseModel, field_validator, constr, EmailStr, Field
 
 LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 PASSWORD_PATTERN = re.compile(r"^.+$")
@@ -20,11 +20,6 @@ class ShowUser(TunedModel):
     name: str
     surname: str
     email: EmailStr
-    is_active: bool
-
-
-class ShowAllUsers(BaseModel):
-    users: List[ShowUser]
 
 
 class UserCreate(BaseModel):
