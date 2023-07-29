@@ -1,5 +1,5 @@
 import re
-from typing import Optional, List
+from typing import Optional
 
 from fastapi import HTTPException
 from pydantic import BaseModel, field_validator, constr, EmailStr, Field
@@ -9,10 +9,9 @@ PASSWORD_PATTERN = re.compile(r"^.+$")
 
 
 class TunedModel(BaseModel):
-    class Config:
-        """tells pydantic to convert even non dict obj to json"""
-
-        from_attributes = True
+    class Config: ConfigDict = {
+        "orm_mode": True
+    }
 
 
 class ShowUser(TunedModel):
@@ -20,6 +19,7 @@ class ShowUser(TunedModel):
     name: str
     surname: str
     email: EmailStr
+    is_active: bool
 
 
 class UserCreate(BaseModel):
@@ -46,7 +46,7 @@ class UserCreate(BaseModel):
 
 
 class DeleteUserResponse(BaseModel):
-    deleted_user_id: int
+    deactivated_user: int
 
 
 class UpdatedUserResponse(BaseModel):
@@ -79,3 +79,6 @@ class UpdateUserRequest(BaseModel):
         if not PASSWORD_PATTERN.match(value):
             raise HTTPException(status_code=422, detail="Password should not be empty")
         return value
+
+class DeactivateUserRequest(BaseModel):
+    is_active: bool

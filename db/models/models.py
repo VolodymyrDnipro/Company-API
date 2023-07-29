@@ -1,8 +1,9 @@
 from sqlalchemy import Boolean, Column, String, Integer, ForeignKey, Enum, Table
 from sqlalchemy.orm import declarative_base, relationship
 from enum import Enum as PyEnum
+from db.session import metadata
 
-Base = declarative_base()
+Base = declarative_base(metadata=metadata)
 
 
 class CompanyMembership(Base):
@@ -11,12 +12,19 @@ class CompanyMembership(Base):
     user_id = Column(Integer, ForeignKey('users.user_id'), primary_key=True)
     company_id = Column(Integer, ForeignKey('companies.company_id'), primary_key=True)
     is_owner = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
 
 
 class RequestStatus(PyEnum):
     PENDING = "pending"
     ACCEPTED = "accepted"
     DECLINED = "declined"
+    DEACTIVATED = "deactivated"
+
+
+class RequestCreatedBy(PyEnum):
+    USER = "user"
+    COMPANY = "company"
 
 
 class CompanyRequest(Base):
@@ -26,6 +34,7 @@ class CompanyRequest(Base):
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     company_id = Column(Integer, ForeignKey('companies.company_id'), nullable=False)
     status = Column(Enum(RequestStatus), default=RequestStatus.PENDING)
+    created_by = Column(Enum(RequestCreatedBy), default=RequestCreatedBy.USER)
 
     # Relationship with User model
     user = relationship("User", back_populates="user_requests")
@@ -34,6 +43,7 @@ class CompanyRequest(Base):
 
 
 class RoleType(PyEnum):
+    OWNER = "owner"
     ADMIN = "admin"
     USER = "user"
 
@@ -45,6 +55,7 @@ class CompanyRole(Base):
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     company_id = Column(Integer, ForeignKey('companies.company_id'), nullable=False)
     role_type = Column(Enum(RoleType), default=RoleType.USER)
+    is_active = Column(Boolean, default=True)
 
     # Relationship with User model
     user = relationship("User", back_populates="user_roles")
@@ -65,6 +76,7 @@ class Company(Base):
     description = Column(String, nullable=True)
     visibility = Column(Enum(CompanyVisibility), default=CompanyVisibility.VISIBLE_TO_ALL)
     owner_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    is_active = Column(Boolean, default=True)
 
     # Relationship with User model
     owner = relationship("User", back_populates="companies")
@@ -82,6 +94,7 @@ class User(Base):
     surname = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
     hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
 
     # Relationship with Company model
     companies = relationship("Company", back_populates="owner")

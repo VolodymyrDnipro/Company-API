@@ -1,8 +1,5 @@
-# My FastAPI Project
 
-This is a sample FastAPI project.
-
-## Running the Application in Docker
+### Running the Application in Docker
 
 1. Clone the repository:
 ```bash
@@ -14,12 +11,8 @@ git clone https://github.com/VolodymyrDnipro/Meduzzen_intership_backend.git
 3. Build the Docker image using the docker build command:
 ```bash
 docker compose up
-``` 
-4. Build the Docker image using the docker build command:
-```bash
-docker compose run database
-``` 
-## Clean cash & other
+```
+### Clean cash & other
 1. Stop and remove all running Docker containers:
 ```bash
 docker stop $(docker ps -a -q)
@@ -44,10 +37,9 @@ docker network prune
 docker system prune -a
 ```
 
-## Usage
+### Usage
 
 1.To run the FastAPI application, execute the following command:
-
 ```bash
 uvicorn main:app --reload
 ```
