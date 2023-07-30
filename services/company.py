@@ -371,16 +371,16 @@ class CompanyService:
                                                        role_type=role_type)
 
         # get user details for each member
-        users = []
-        for member in members:
-            user = await self.user_crud.get_by_field(member.user_id, field_name='user_id')
-            if user:
-                users.append(ShowUser(
-                    user_id=user.user_id,
-                    name=user.name,
-                    surname=user.surname,
-                    email=user.email,
-                    is_active=user.is_active
-                ))
+        users = [
+            ShowUser(
+                user_id=user.user_id,
+                name=user.name,
+                surname=user.surname,
+                email=user.email,
+                is_active=user.is_active
+            )
+            for member in members
+            if (user := await self.user_crud.get_by_field(member.user_id, field_name='user_id'))
+        ]
 
         return users

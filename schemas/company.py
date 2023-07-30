@@ -10,8 +10,6 @@ class TunedModel(BaseModel):
         from_attributes = True
 
 
-# BLOCK COMPANY #
-
 class ShowCompany(TunedModel):
     company_id: int
     name: str
