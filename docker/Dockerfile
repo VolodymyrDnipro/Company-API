@@ -8,6 +8,7 @@ WORKDIR /app
 COPY .env requirements.txt /app/
 
 # Установка зависимостей
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Копирование остальных файлов проекта в контейнер
@@ -18,3 +19,5 @@ EXPOSE 8000
 
 # Команда, выполняемая при запуске контейнера
 CMD ["python", "main.py"]
+# Command to run the tests
+CMD ["pytest"]

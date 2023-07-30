@@ -1,7 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr, Field, constr
-from db.models.models import CompanyVisibility
-
+from db.models.models import CompanyVisibility, RequestStatus, RequestCreatedBy
 
 
 class TunedModel(BaseModel):
@@ -19,6 +18,7 @@ class ShowCompany(TunedModel):
     description: Optional[str]
     visibility: CompanyVisibility
     owner_id: int
+    is_active: bool
 
     @classmethod
     def from_database(cls, db_model):
@@ -28,6 +28,7 @@ class ShowCompany(TunedModel):
             description=db_model.description,
             visibility=db_model.visibility,
             owner_id=db_model.owner_id,
+            is_active=db_model.is_active,
         )
 
 
@@ -40,10 +41,11 @@ class CompanyCreate(BaseModel):
     )
 
 
-class UpdateCompanyRequest(BaseModel):
+class UpdateCompany(BaseModel):
     name: Optional[constr(min_length=1)] = Field(None, description="Updated name of the user")
     description: Optional[constr(min_length=1)] = Field(None, description="Updated surname of the user")
     visibility: CompanyVisibility
+    is_active: Optional[bool]
 
 
 class UpdateCompanyResponse(BaseModel):
@@ -55,91 +57,58 @@ class DeleteCompanyResponse(BaseModel):
 
 
 # BLOCK COMPANY MEMBERSHIP #
-class CompanyMembership(BaseModel):
+class ShowCompanyMembership(TunedModel):
     user_id: int
     company_id: int
     is_owner: bool
-
-    class Config:
-        from_attributes = True
+    is_active: bool
 
 
-class CompanyMembershipCreate(BaseModel):
+class DeactivateCompanyMembershipResponse(TunedModel):
     user_id: int
-    is_owner: bool
+    is_active: bool
 
-
-class CompanyMembershipUpdate(BaseModel):
-    is_owner: bool
-
-
-class CompanyRequestBase(BaseModel):
-    user_id: int
+class UserLeaveCompanyResponse(TunedModel):
     company_id: int
+    is_active: bool
+
+class UpdateCompanyMembershipRequest(BaseModel):
+    user_id: int
+    is_active: bool
 
 
-class CompanyRequestCreate(CompanyRequestBase):
-    pass
+class UserLeaveCompanyRequest(BaseModel):
+    is_active: bool
 
 
-class CompanyRequestUpdate(CompanyRequestBase):
-    status: str
-
-
-class CompanyRequest(CompanyRequestBase):
+# BLOCK COMPANY REQUEST #
+class ShowCompanyRequest(TunedModel):
     request_id: int
-    status: str
-
-    class Config:
-        from_attributes = True
-
-
-class CompanyRoleBase(BaseModel):
     user_id: int
     company_id: int
+    status: RequestStatus
+    created_by: RequestCreatedBy
+
+    @classmethod
+    def from_database(cls, db_model):
+        return cls(
+            request_id=db_model.request_id,
+            user_id=db_model.user_id,
+            company_id=db_model.company_id,
+            status=db_model.status,
+            created_by=db_model.created_by,
+        )
 
 
-class CompanyRoleCreate(CompanyRoleBase):
-    role_type: str
+class DeactivatedCompanyRequestResponse(BaseModel):
+    deactivated_request_id: int
 
 
-class CompanyRoleUpdate(CompanyRoleBase):
-    role_type: str
+class UpdateCompanyRequest(BaseModel):
+    request_id: int
+    status: RequestStatus
 
 
-class CompanyRole(CompanyRoleBase):
-    role_id: int
-    role_type: str
-
-    class Config:
-        from_attributes = True
-
-
-class UserBase(BaseModel):
-    name: str
-    surname: str
-    email: EmailStr
-
-
-class UserCreate(UserBase):
-    password: str
-
-
-class UserUpdate(UserBase):
-    pass
-
-
-class User(UserBase):
-    user_id: int
-    companies: List[ShowCompany] = []
-    requests: List[CompanyRequest] = []
-
-    class Config:
-        from_attributes = True
-
-
-class UserWithCompanyRole(User):
-    role_type: str
-
-    class Config:
-        from_attributes = True
+class UpdateCompanyRequestResponse(BaseModel):
+    updated_request_id: int
+    status: RequestStatus

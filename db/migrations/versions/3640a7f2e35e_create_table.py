@@ -1,8 +1,8 @@
 """create_table
 
-Revision ID: f216e0071bc0
+Revision ID: 3640a7f2e35e
 Revises: 
-Create Date: 2023-07-23 21:16:33.920562
+Create Date: 2023-07-29 22:23:12.313244
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'f216e0071bc0'
+revision = '3640a7f2e35e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -24,6 +24,7 @@ def upgrade():
     sa.Column('surname', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
     sa.Column('hashed_password', sa.String(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('user_id'),
     sa.UniqueConstraint('email')
     )
@@ -33,6 +34,7 @@ def upgrade():
     sa.Column('description', sa.String(), nullable=True),
     sa.Column('visibility', sa.Enum('HIDDEN', 'VISIBLE_TO_ALL', name='companyvisibility'), nullable=True),
     sa.Column('owner_id', sa.Integer(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['owner_id'], ['users.user_id'], ),
     sa.PrimaryKeyConstraint('company_id')
     )
@@ -40,6 +42,7 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('company_id', sa.Integer(), nullable=False),
     sa.Column('is_owner', sa.Boolean(), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['company_id'], ['companies.company_id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ),
     sa.PrimaryKeyConstraint('user_id', 'company_id')
@@ -48,7 +51,8 @@ def upgrade():
     sa.Column('request_id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('company_id', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('PENDING', 'ACCEPTED', 'DECLINED', name='requeststatus'), nullable=True),
+    sa.Column('status', sa.Enum('PENDING', 'ACCEPTED', 'DECLINED', 'DEACTIVATED', name='requeststatus'), nullable=True),
+    sa.Column('created_by', sa.Enum('USER', 'COMPANY', name='requestcreatedby'), nullable=True),
     sa.ForeignKeyConstraint(['company_id'], ['companies.company_id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ),
     sa.PrimaryKeyConstraint('request_id')
@@ -57,7 +61,8 @@ def upgrade():
     sa.Column('role_id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('company_id', sa.Integer(), nullable=False),
-    sa.Column('role_type', sa.Enum('ADMIN', 'USER', name='roletype'), nullable=True),
+    sa.Column('role_type', sa.Enum('OWNER', 'ADMIN', 'USER', name='roletype'), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['company_id'], ['companies.company_id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ),
     sa.PrimaryKeyConstraint('role_id')

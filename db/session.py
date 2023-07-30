@@ -4,6 +4,7 @@ from typing import Generator
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy import MetaData
 from fastapi import Depends
 
 
@@ -16,6 +17,7 @@ async def get_redis_client() -> asyncio_redis.Connection:
         connection.close()
         await connection.wait_closed()
 
+metadata = MetaData()
 
 # create async engine for interaction with database
 engine = create_async_engine(

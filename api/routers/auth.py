@@ -3,8 +3,9 @@ from fastapi import APIRouter, HTTPException, status, Depends, Body
 from schemas.users import ShowUser
 from schemas.auth import Token
 from services.auth import AuthService
-from utils.security import encode_bearer_token, decode_bearer_token
+from utils.security import encode_bearer_token
 from utils.dependencies import get_auth_service
+from api.routers.users import get_user_data
 
 auth_router = APIRouter()
 
@@ -22,14 +23,8 @@ async def login(email: str = Body(...), password: str = Body(...), auth_service:
 
 
 @auth_router.get("/auth/me", response_model=ShowUser)
-async def get_me(user_data: dict = Depends(decode_bearer_token), auth_service: AuthService = Depends(get_auth_service)):
-    if not user_data:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access token not found")
-    email = user_data.get("email", None)
-    if not email:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email not found in token data")
-
-    user = await auth_service.get_user_by_email_for_auth(email)
+async def get_me(user_email: str = Depends(get_user_data), auth_service: AuthService = Depends(get_auth_service)):
+    user = await auth_service.get_user_by_email_for_auth(user_email)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token, email not found")
     return user
