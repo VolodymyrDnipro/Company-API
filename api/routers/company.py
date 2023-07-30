@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body, Path
 from fastapi_pagination import Page, Params, paginate
 
 from schemas.company import *
+from schemas.users import ShowUser
 from services.company import CompanyService
 from utils.dependencies import get_company_service
 from api.routers.users import get_user_data
@@ -344,4 +345,45 @@ async def user_leave_company(
     return {"company_id": company_id, "is_active": request_data.is_active}
 
 
+# Реалізація логіки додавання Адміну до компанії
+@company_router.put("/company/{company_id}/changed_user/{user_id}", response_model=UpdateCompanyRoleResponse)
+async def company_change_user_role_in_company(
+        company_id: int = Path(...),
+        request_data: UpdateCompanyRoleRequest = Body(...),
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service)
+):
+    try:
+        # check auth user has owner or admin role
+        await company_service.check_who_this_user_in_company_admin_or_owner_by_company_id(user_email, company_id)
 
+        # check user in company
+        await company_service.check_user_in_company_membership(company_id, request_data.user_id)
+
+        # change User Role
+        await company_service.change_user_role_in_company(company_id, request_data)
+
+    except HTTPException as exc:
+        raise exc
+    return {"user_id": request_data.user_id, "role_type": request_data.role_type}
+
+
+# Реалізація ендпоінту для отримання списку адміністраторів у компанії
+@company_router.get("/company/{company_id}/company_members/{role_type}", response_model=Page[ShowUser])
+async def get_company_admins(
+        company_id: int = Path(...),
+        role_type: RoleType = Path(...),
+        params: Params = Depends(),
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service)
+):
+    try:
+        # check auth user has owner or admin role
+        await company_service.check_who_this_user_in_company_admin_or_owner_by_company_id(user_email, company_id)
+
+        # Отримати список адміністраторів компанії за її ідентифікатором
+        company_members = await company_service.get_all_members_in_company_by_role_type(company_id, role_type)
+    except HTTPException as exc:
+        raise exc
+
+    return paginate(company_members, params)

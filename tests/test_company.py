@@ -5,6 +5,7 @@ import config
 from jose import jwt
 
 # Тест на створення компанії
+@pytest.mark.runafter("test_create_user")
 @pytest.mark.asyncio
 async def test_create_company(ac: AsyncClient):
     # Створюємо дані для створення токена
@@ -158,14 +159,16 @@ async def test_deactivate_company(ac: AsyncClient):
 
 
 # Тест для роуту /company/{company_id}/request/{user_id}
+@pytest.mark.runafter("test_create_company")
 @pytest.mark.asyncio
 async def test_create_request_to_user_from_company(ac: AsyncClient):
-    company_id = 2
+    company_id2 = 2
+    company_id4 = 4
     user_id_3 = 3   # "testemail3@example.com"
     user_id_4 = 4   # "testemail4@example.com"
     user_id_5 = 5   # "testemail5@example.com"
     # Виконуємо POST-запит для створення запиту
-    response1 = await ac.post(f"/company/{company_id}/request/{user_id_3}", headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
+    response1 = await ac.post(f"/company/{company_id2}/request/{user_id_3}", headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
 
     # Перевіряємо, чи запит був успішним (статус 200)
     assert response1.status_code == status.HTTP_200_OK
@@ -177,12 +180,19 @@ async def test_create_request_to_user_from_company(ac: AsyncClient):
     assert "company_id" in data
     assert "status" in data
 
-    response2 = await ac.post(f"/company/{company_id}/request/{user_id_4}",
+    response2 = await ac.post(f"/company/{company_id2}/request/{user_id_4}",
                              headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
     assert response2.status_code == status.HTTP_200_OK
-    response3 = await ac.post(f"/company/{company_id}/request/{user_id_5}",
+    response3 = await ac.post(f"/company/{company_id2}/request/{user_id_5}",
                               headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
     assert response3.status_code == status.HTTP_200_OK
+
+    response5 = await ac.post(f"/company/{company_id4}/request/{user_id_4}",
+                              headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
+    assert response5.status_code == status.HTTP_200_OK
+    response6 = await ac.post(f"/company/{company_id4}/request/{user_id_5}",
+                              headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
+    assert response6.status_code == status.HTTP_200_OK
 
 
 # Тест для роуту /company/request/{request_id}/cancel/
@@ -255,6 +265,8 @@ async def test_user_create_request_to_company(ac: AsyncClient):
     await ac.post(f"/user/{company_id_4}/request/", headers={"Authorization": f"Bearer {token}"})
 
 
+
+
 # Тест для скасування запиту користувачем до компанії
 @pytest.mark.asyncio
 async def test_user_cancel_request_to_company(ac: AsyncClient):
@@ -267,7 +279,7 @@ async def test_user_cancel_request_to_company(ac: AsyncClient):
     headers = {"Authorization": f"Bearer {access_token}"}
 
     # Підготовка даних для запиту
-    request_id = 5
+    request_id = 7
 
     # Відправляємо PUT-запит для скасування запиту користувачем до компанії
     response = await ac.put(f"/user/request/{request_id}/cancel/", headers=headers)
@@ -284,15 +296,13 @@ async def test_user_cancel_request_to_company(ac: AsyncClient):
 
 
 # Тест для оновлення статусу запиту користувача до компанії
+@pytest.mark.runafter("test_create_request_to_user_from_company")
 @pytest.mark.asyncio
 async def test_user_update_company_request_status(ac: AsyncClient):
     # Створюємо дані для створення токена
     email = "testemail3@example.com"
     token_data = {"email": email}
-    access_token = jwt.encode(token_data, config.SECRET_KEY, algorithm=config.ALGORITHM)
-
-    # Моделюємо дані з токеном авторизації
-    headers = {"Authorization": f"Bearer {access_token}"}
+    token = jwt.encode(token_data, config.SECRET_KEY, algorithm=config.ALGORITHM)
 
     # Підготовка даних для запиту
     request_data = {
@@ -302,7 +312,7 @@ async def test_user_update_company_request_status(ac: AsyncClient):
     request_id = 1
 
     # Відправляємо PUT-запит для оновлення статусу запиту користувача до компанії
-    response = await ac.put(f"/user/request/{request_id}/status/", json=request_data, headers=headers)
+    response = await ac.put(f"/user/request/{request_id}/status/", json=request_data, headers={"Authorization": f"Bearer {token}"})
 
     # Перевіряємо, чи запит був успішним (статус 200)
     assert response.status_code == status.HTTP_200_OK
@@ -313,6 +323,29 @@ async def test_user_update_company_request_status(ac: AsyncClient):
     assert "status" in data
     assert data["updated_request_id"] == request_data["request_id"]
     assert data["status"] == request_data["status"]
+
+    email = "testemail4@example.com"
+    token_data = {"email": email}
+    token = jwt.encode(token_data, config.SECRET_KEY, algorithm=config.ALGORITHM)
+    request_data = {
+        "request_id": 4,
+        "status": "accepted"
+    }
+    response = await ac.put(f"/user/request/{request_id}/status/", json=request_data, headers={"Authorization": f"Bearer {token}"})
+
+    email = "testemail5@example.com"
+    token_data = {"email": email}
+    token = jwt.encode(token_data, config.SECRET_KEY, algorithm=config.ALGORITHM)
+    request_data = {
+        "request_id": 5,
+        "status": "accepted"
+    }
+    response = await ac.put(f"/user/request/{request_id}/status/", json=request_data,
+                            headers={"Authorization": f"Bearer {token}"})
+
+
+
+
 
 
 # Тест для роута /user_requests/
@@ -396,7 +429,7 @@ async def test_user_leave_company(ac: AsyncClient):
 # Тест для роута /company_request/{request_id}/
 @pytest.mark.asyncio
 async def test_company_update_user_request(ac: AsyncClient):
-    request_id = 4
+    request_id = 6
 
     # Создаем данные для запроса, где status=RequestStatus.ACCEPTED, что означает, что запрос будет принят
     request_data = {"request_id": request_id, "status": "accepted"}
@@ -434,10 +467,11 @@ async def test_get_all_users_in_company(ac: AsyncClient):
 
 
 # Тест для роуту /company_deactivate_user_in_company/{company_id}
+@pytest.mark.runafter("test_get_company_admins")
 @pytest.mark.asyncio
 async def test_company_deactivate_user_in_company(ac: AsyncClient):
-    company_id = 3
-    user_id = 3
+    company_id = 4
+    user_id = 5
     is_active = False
 
     # Спробуємо деактивувати користувача в компанії
@@ -456,3 +490,57 @@ async def test_company_deactivate_user_in_company(ac: AsyncClient):
     # Перевіряємо, чи дані про деактивацію користувача відповідають переданим даним
     assert data["user_id"] == user_id
     assert data["is_active"] == is_active
+
+
+
+
+
+# Тест для роуту /company/{company_id}/changed_user/{user_id}
+@pytest.mark.asyncio
+async def test_company_change_user_role_in_company(ac: AsyncClient):
+    company_id = 4
+    user_id4 = 4
+    user_id5 = 5
+    new_role_type = "admin"
+
+    # Спробуємо змінити роль користувача в компанії
+    response = await ac.put(f"/company/{company_id}/changed_user/{user_id4}",
+                            json={"user_id": user_id4, "role_type": new_role_type},
+                            headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
+
+    # Перевіряємо, чи запит був успішним (статус 200)
+    assert response.status_code == status.HTTP_200_OK
+
+    # Перевіряємо, чи повернулися правильні дані про зміну ролі користувача
+    data = response.json()
+    assert "user_id" in data
+    assert "role_type" in data
+
+    # Перевіряємо, чи дані про зміну ролі користувача відповідають переданим даним
+    assert data["user_id"] == user_id4
+    assert data["role_type"] == new_role_type
+    # Спробуємо змінити роль користувача в компанії
+    response = await ac.put(f"/company/{company_id}/changed_user/{user_id5}",
+                            json={"user_id": user_id5, "role_type": new_role_type},
+                            headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
+
+
+# Тест для роуту /company/{company_id}/company_members/{role_type}
+@pytest.mark.runafter("test_company_change_user_role_in_company")
+@pytest.mark.asyncio
+async def test_get_company_admins(ac: AsyncClient):
+    company_id = 4
+    role_type = "admin"
+
+    # Спробуємо отримати список адміністраторів компанії
+    response = await ac.get(f"/company/{company_id}/company_members/{role_type}",
+                            headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
+
+    # Перевіряємо, чи запит був успішним (статус 200)
+    assert response.status_code == status.HTTP_200_OK
+
+    # Перевіряємо, чи дані про адміністраторів компанії повернулися у відповідь
+    data = response.json()
+    assert "items" in data  # Перевіряємо наявність ключа "items"
+    assert isinstance(data["items"], list)  # Перевіряємо, що значення по ключу "items" є списком
+    assert len(data["items"]) > 0  # Перевіряємо, що список  не є порожнім
