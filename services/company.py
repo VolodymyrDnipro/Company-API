@@ -4,10 +4,10 @@ from typing import List, Dict
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models.models import User, Company, CompanyMembership, CompanyRequest, RequestStatus, RequestCreatedBy, CompanyRole, RoleType
-from schemas.company import CompanyCreate, UpdateCompany, UpdateCompanyRequest, UpdateCompanyMembershipRequest, \
-    UserLeaveCompanyRequest
+from db.models.models import *
+from schemas.company import *
 from managers.base_manager import CRUDBase
+from schemas.users import ShowUser
 
 
 class CompanyService:
@@ -37,7 +37,8 @@ class CompanyService:
         # Додаємо Овнера до таблиці CompanyMembership як Овнера
         company_member = CompanyMembership(user_id=user.user_id, company_id=created_company.company_id, is_owner=True)
         await self.membership_crud.create(company_member)
-        company_role = CompanyRole(user_id=user.user_id, company_id= created_company.company_id, role_type=RoleType.OWNER)
+        company_role = CompanyRole(user_id=user.user_id, company_id=created_company.company_id,
+                                   role_type=RoleType.OWNER)
         await self.company_role_crud.create(company_role)
         return created_company
 
@@ -67,7 +68,6 @@ class CompanyService:
         deactivated_company = await self.company_crud.update(company, update_data)
 
         return deactivated_company
-
 
     # # FIND WHO USER IN COMPANY # #
     async def check_who_this_user_in_company_admin_or_owner_by_company_id(self, email: str, company_id: int) -> None:
@@ -117,7 +117,7 @@ class CompanyService:
 
         # Check user in company
         company_membership = await self.membership_crud.get_by_fields(user_id=user_id,
-                                                                                  company_id=company.company_id)
+                                                                      company_id=company.company_id)
         if company_membership:
             raise HTTPException(status_code=403,
                                 detail="User with the provided user_id is already a member of this company")
@@ -210,7 +210,8 @@ class CompanyService:
         if not company_member:
             raise HTTPException(status_code=404, detail="Not found user in company")
 
-    async def company_deactivate_user_from_membership(self, company_id: int, request_data: UpdateCompanyMembershipRequest) -> None:
+    async def company_deactivate_user_from_membership(self, company_id: int,
+                                                      request_data: UpdateCompanyMembershipRequest) -> None:
         # find user in CompanyMembership table
         user_membership = await self.membership_crud.get_by_fields(company_id=company_id, user_id=request_data.user_id)
 
@@ -219,7 +220,6 @@ class CompanyService:
             raise HTTPException(status_code=403, detail="Forbidden: Cannot deactivate the owner of the company")
 
         await self.membership_crud.update(user_membership, request_data.dict())
-
 
     async def check_user_is_not_in_company_by_email(self, company_id: int, email: str) -> None:
         # Find auth_user by email
@@ -354,3 +354,33 @@ class CompanyService:
         # Update user's is_active status
         await self.membership_crud.update(user_membership, request_data.dict())
 
+    async def change_user_role_in_company(self, company_id: int, request_data: UpdateCompanyRoleRequest) -> RoleType:
+        # find role in company
+        user_role = await self.company_role_crud.get_by_fields(company_id=company_id, user_id=request_data.user_id)
+        # change user role
+        change_role = await self.company_role_crud.update(user_role, request_data.dict())
+        return change_role
+
+    async def get_all_members_in_company_by_role_type(self, company_id: int, role_type: RoleType) -> List[User]:
+        # find company
+        company = await self.company_crud.get_by_field(company_id, field_name='company_id')
+        if not company:
+            raise HTTPException(status_code=404, detail="Not found company_id")
+        # get all users in company by role type
+        members = await self.company_role_crud.get_all(company_id=company.company_id, is_active=True,
+                                                       role_type=role_type)
+
+        # get user details for each member
+        users = [
+            ShowUser(
+                user_id=user.user_id,
+                name=user.name,
+                surname=user.surname,
+                email=user.email,
+                is_active=user.is_active
+            )
+            for member in members
+            if (user := await self.user_crud.get_by_field(member.user_id, field_name='user_id'))
+        ]
+
+        return users

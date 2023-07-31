@@ -1,6 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr, Field, constr
-from db.models.models import CompanyVisibility, RequestStatus, RequestCreatedBy
+from db.models.models import CompanyVisibility, RequestStatus, RequestCreatedBy, RoleType
 
 
 class TunedModel(BaseModel):
@@ -9,8 +9,6 @@ class TunedModel(BaseModel):
 
         from_attributes = True
 
-
-# BLOCK COMPANY #
 
 class ShowCompany(TunedModel):
     company_id: int
@@ -68,9 +66,11 @@ class DeactivateCompanyMembershipResponse(TunedModel):
     user_id: int
     is_active: bool
 
+
 class UserLeaveCompanyResponse(TunedModel):
     company_id: int
     is_active: bool
+
 
 class UpdateCompanyMembershipRequest(BaseModel):
     user_id: int
@@ -112,3 +112,35 @@ class UpdateCompanyRequest(BaseModel):
 class UpdateCompanyRequestResponse(BaseModel):
     updated_request_id: int
     status: RequestStatus
+
+
+class ShowCompanyRole(TunedModel):
+    role_id: int
+    user_id: int
+    company_id: int
+    role_type: RoleType
+    is_active: bool
+
+    @classmethod
+    def from_database(cls, db_model):
+        return cls(
+            role_id=db_model.role_id,
+            user_id=db_model.user_id,
+            company_id=db_model.company_id,
+            role_type=db_model.role_type,
+            is_active=db_model.is_active,
+        )
+
+
+class UpdateCompanyRoleRequest(BaseModel):
+    user_id: int
+    role_type: RoleType
+
+
+class UpdateCompanyRoleResponse(BaseModel):
+    user_id: int
+    role_type: RoleType
+
+
+class FindCompanyRoleRequest(BaseModel):
+    role_type: RoleType

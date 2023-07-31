@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body, Path
 from fastapi_pagination import Page, Params, paginate
 
 from schemas.company import *
+from schemas.users import ShowUser
 from services.company import CompanyService
 from utils.dependencies import get_company_service
 from api.routers.users import get_user_data
@@ -63,7 +64,7 @@ async def deactivate_company(company_id: int = Path(...),
     return {"updated_company_id": company_id}
 
 
-# Реалізація логіки створення Овнером реквесту на инвайт до компанії (додавання до бази даних)
+# Implementation of the logic of creating a request for an invite to the company by Ovner (adding to the data base)
 @company_router.post("/company/{company_id}/request/{user_id}", response_model=ShowCompanyRequest)
 async def create_request_to_user_from_company(
         company_id: int = Path(...),
@@ -83,8 +84,7 @@ async def create_request_to_user_from_company(
 
     return new_request
 
-
-# Реалізація логіки видалення запиту на вступ до компанії (зміна статусу на deactivated)
+# Implementation of the logic of remote request to join the company (change the status to deactivated)
 @company_router.put("/company/request/{request_id}/cancel/", response_model=DeactivatedCompanyRequestResponse)
 async def company_cancel_request_to_user(
         request_id: int = Path(...),
@@ -102,7 +102,7 @@ async def company_cancel_request_to_user(
     return {"deactivated_request_id": request_id}
 
 
-# Реалізація логіки оновлення запиту на вступ до компанії (зміна статусу на Accepted or Declined)
+# Implementation of the logic of updating the request to join the company (changing the status to Accepted or Declined)
 @company_router.put("/company_request/{request_id}/", response_model=UpdateCompanyRequestResponse)
 async def company_update_user_request(
         request_data: UpdateCompanyRequest = Body(...),
@@ -133,7 +133,7 @@ async def company_update_user_request(
     return {"updated_request_id": request_id, "status": request_data.status}
 
 
-# Реалізація логіки отримання Owner списку запитів від компанії до юзерів
+# Implementation of the logic of changing the Owner from the list of requests from the company to users
 @company_router.get("/company_requests_from_company/{company_id}", response_model=Page[ShowCompanyRequest])
 async def company_get_all_requests_from_company_to_users(
         params: Params = Depends(),
@@ -152,7 +152,7 @@ async def company_get_all_requests_from_company_to_users(
     return paginate(requests, params)
 
 
-# Реалізація логіки отримання Owner списку запитів від юзерів до компанії
+# Implementation of the logic of taking the Owner from the list of requests from users to the company
 @company_router.get("/company_requests_from_users/{company_id}", response_model=Page[ShowCompanyRequest])
 async def company_get_all_requests_from_users_to_company(
         params: Params = Depends(),
@@ -171,7 +171,7 @@ async def company_get_all_requests_from_users_to_company(
     return paginate(requests, params)
 
 
-# Реалізація логіки відображення Users in company
+# Implementation of the visualization logic Users in company
 @company_router.get("/company_get_all_users/{company_id}", response_model=Page[ShowCompanyMembership])
 async def get_all_users_in_company(
         company_id: int = Path(...),
@@ -190,7 +190,7 @@ async def get_all_users_in_company(
     return paginate(users, params)
 
 
-# Реалізація логіки видалення User from company
+# Realization logic remote User from company
 @company_router.put("/company_deactivate_user_in_company/{company_id}", response_model=DeactivateCompanyMembershipResponse)
 async def company_deactivate_user_in_company(
         company_id: int = Path(...),
@@ -216,7 +216,7 @@ async def company_deactivate_user_in_company(
     return {"user_id": user_id, "is_active": request_data.is_active}
 
 
-# Реалізація логіки створення USER реквесту на инвайт до компанії (додавання до бази даних)
+# Implementation of the logic for creating a USER request for an invite to the company (adding to the data base)
 @company_router.post("/user/{company_id}/request/", response_model=ShowCompanyRequest)
 async def user_create_request_to_company(
         company_id: int = Path(...),
@@ -238,7 +238,7 @@ async def user_create_request_to_company(
     return new_request
 
 
-# Реалізація логіки видалення запиту на вступ до компанії Юзером
+# Implementation of the logic of remote access to the entry to the company by the User
 @company_router.put("/user/request/{request_id}/cancel/", response_model=ShowCompanyRequest)
 async def user_cancel_request_to_company(
         request_id: int = Path(...),
@@ -257,7 +257,7 @@ async def user_cancel_request_to_company(
     return canceled_request
 
 
-# Реалізація логіки оновлення запиту на вступ до компанії Юзером(зміна статусу на Accepted or Declined)
+# Implementation of the logic of updating the request for entry to the company by the User (changing the status to Accepted or Declined)
 @company_router.put("/user/request/{request_id}/status/", response_model=UpdateCompanyRequestResponse)
 async def user_update_company_request_status(
         request_data: UpdateCompanyRequest = Body(...),
@@ -273,7 +273,6 @@ async def user_update_company_request_status(
         if request_data.status not in [RequestStatus.ACCEPTED, RequestStatus.DECLINED]:
             raise HTTPException(status_code=400, detail="Invalid request status")
 
-        # Отримуємо статус із request_data
         status = request_data.status
 
         if status == RequestStatus.DECLINED:
@@ -290,7 +289,7 @@ async def user_update_company_request_status(
     return {"updated_request_id": request_id, "status": status}
 
 
-# Реалізація логіки отримання User списку запитів від компаній
+# Implementation of the logic of ending the User to the list of requests for companies
 @company_router.get("/user_requests/", response_model=Page[ShowCompanyRequest])
 async def get_user_requests(
         params: Params = Depends(),
@@ -305,7 +304,7 @@ async def get_user_requests(
     return paginate(user_requests, params)
 
 
-# Реалізація логіки отримання User списку запитів створени ним до компаній
+# Implementation of the logic of taking the User off the list of requests created by him to the company
 @company_router.get("/user_created_requests/", response_model=Page[ShowCompanyRequest])
 async def get_user_created_requests(
         params: Params = Depends(),
@@ -321,7 +320,6 @@ async def get_user_created_requests(
     return paginate(user_requests, params)
 
 
-# Реалізація логіки видалення User from company
 @company_router.put("/users_leave_company/{company_id}", response_model=UserLeaveCompanyResponse)
 async def user_leave_company(
         company_id: int = Path(...),
@@ -344,4 +342,45 @@ async def user_leave_company(
     return {"company_id": company_id, "is_active": request_data.is_active}
 
 
+# Implementation of the logic change user role to the company
+@company_router.put("/company/{company_id}/changed_user/{user_id}", response_model=UpdateCompanyRoleResponse)
+async def company_change_user_role_in_company(
+        company_id: int = Path(...),
+        request_data: UpdateCompanyRoleRequest = Body(...),
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service)
+):
+    try:
+        # check auth user has owner or admin role
+        await company_service.check_who_this_user_in_company_admin_or_owner_by_company_id(user_email, company_id)
 
+        # check user in company
+        await company_service.check_user_in_company_membership(company_id, request_data.user_id)
+
+        # change User Role
+        await company_service.change_user_role_in_company(company_id, request_data)
+
+    except HTTPException as exc:
+        raise exc
+    return {"user_id": request_data.user_id, "role_type": request_data.role_type}
+
+
+# Implementation of the endpoint for removing the list of administrators from the company
+@company_router.get("/company/{company_id}/company_members/{role_type}", response_model=Page[ShowUser])
+async def get_company_admins(
+        company_id: int = Path(...),
+        role_type: RoleType = Path(...),
+        params: Params = Depends(),
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service)
+):
+    try:
+        # check auth user has owner or admin role
+        await company_service.check_who_this_user_in_company_admin_or_owner_by_company_id(user_email, company_id)
+
+        # View the list of company administrators by id
+        company_members = await company_service.get_all_members_in_company_by_role_type(company_id, role_type)
+    except HTTPException as exc:
+        raise exc
+
+    return paginate(company_members, params)
