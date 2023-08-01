@@ -27,14 +27,14 @@ class CompanyService:
 
     # # BLOCK OWNER # #
     async def create_company(self, company_data: CompanyCreate, email: str) -> Company:
-        # Знаходимо юзера
+        # find user
         user = await self.user_crud.get_by_field(email, field_name='email')
-        # Створюємо компанію
+        # create company
         company = Company(name=company_data.name, description=company_data.description,
                           visibility=company_data.visibility,
                           owner_id=user.user_id)
         created_company = await self.company_crud.create(company)
-        # Додаємо Овнера до таблиці CompanyMembership як Овнера
+        # create owner for table CompanyMembership
         company_member = CompanyMembership(user_id=user.user_id, company_id=created_company.company_id, is_owner=True)
         await self.membership_crud.create(company_member)
         company_role = CompanyRole(user_id=user.user_id, company_id=created_company.company_id,
@@ -44,9 +44,9 @@ class CompanyService:
 
     async def update_company(self, company_data: UpdateCompany, company_id: int,
                              email: str) -> Company:
-        # Знаходимо юзера
+        # find user
         user = await self.user_crud.get_by_field(email, field_name='email')
-        # Знаходимо компанію
+        # find company
         company = await self.company_crud.get_by_field(company_id, field_name='company_id')
         if user.user_id != company.owner_id:
             raise HTTPException(status_code=403, detail="Forbidden to update")
@@ -58,12 +58,12 @@ class CompanyService:
         # find auth_user by email
         user = await self.user_crud.get_by_field(email, field_name='email')
 
-        # Знаходимо компанію
+        # find company
         company = await self.company_crud.get_by_field(company_id, field_name='company_id')
         if user.user_id != company.owner_id:
             raise HTTPException(status_code=403, detail="Forbidden to update")
 
-        # Оновлюємо поле is_active на False
+        # update is_active on False
         update_data = {'is_active': False}
         deactivated_company = await self.company_crud.update(company, update_data)
 

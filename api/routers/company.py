@@ -41,9 +41,9 @@ async def update_company(company_id: int = Path(...), company: UpdateCompany = B
                          user_email: str = Depends(get_user_data),
                          company_service: CompanyService = Depends(get_company_service)):
     try:
-        # Перевірка, авторизований юзер є овнером компанії
+        # Check if the user is the owner or admin of the company
         await company_service.check_who_this_user_in_company_admin_or_owner_by_company_id(user_email, company_id)
-        # Апдейт компанії
+        # update company
         await company_service.update_company(company, company_id, user_email)
     except HTTPException as exc:
         raise exc
@@ -55,9 +55,9 @@ async def deactivate_company(company_id: int = Path(...),
                              user_email: str = Depends(get_user_data),
                              company_service: CompanyService = Depends(get_company_service)):
     try:
-        # Перевірка, авторизований юзер є овнером компанії
+        # Check if the user is the owner or admin of the company
         await company_service.check_who_this_user_in_company_admin_or_owner_by_company_id(user_email, company_id)
-        # Деактивація компанії
+        # deactivate company
         await company_service.deactivate_company(company_id, user_email)
     except HTTPException as exc:
         raise exc
