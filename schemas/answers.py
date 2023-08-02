@@ -4,6 +4,7 @@ from pydantic import BaseModel, field_validator
 
 class AnswerBase(BaseModel):
     answer_id: int
+    quiz_id: int
     question_id: int
     answer_text: str
     is_correct: bool
