@@ -1,19 +1,18 @@
+from typing import Union, List
+
 from fastapi import HTTPException, status
 import json
 from datetime import datetime, timedelta
 import asyncio_redis
 import config
-from asyncio_redis import Connection
+import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func
-# from db.session import create_redis_connection
-from db.models.models import *
-from schemas.company import *
-from schemas.quizzes import *
-from schemas.questions import *
-from schemas.answers import *
+from db.models.models import (Answer, Company, User, CompanyMembership, CompanyRequest, CompanyRole, Quiz, QuizResult,
+                              Question, UserAnswers)
+from schemas.quizzes import QuizCreate, QuizUpdate, UserAnswersCreate, QuizResultCreate
+from schemas.questions import QuestionUpdate
+from schemas.answers import AnswerUpdate
 from managers.base_manager import CRUDBase
-from schemas.users import ShowUser
 
 
 class QuizService:
@@ -248,7 +247,7 @@ class QuizService:
             quiz_results_with_company.append(quiz_result_with_company)
 
         quiz_results_json = json.dumps(quiz_results_with_company)
-        await redis_connection.set(str(user.user_id), quiz_results_json)
+        await redis_connection.setex(str(user.user_id), 172800, quiz_results_json)
         redis_connection.close()
 
     async def create_redis_connection(self):
@@ -257,3 +256,42 @@ class QuizService:
 
         redis_connection = await asyncio_redis.Connection.create(host=redis_host, port=redis_port)
         return redis_connection
+
+    async def export_json_data_by_user_id(self, user_id: int):
+        redis_connection = await self.create_redis_connection()
+
+        data = await redis_connection.get(str(user_id))
+        if not data:
+            data_list = await self.quiz_result_crud.get_all(user_id=user_id)
+
+            data_dict = {index: item for index, item in enumerate(data_list)}
+            return data_dict
+
+        data_dict = json.loads(data)
+        return data_dict
+
+    async def export_csv_data_by_user_id(self, user_id: int) -> Union[pd.DataFrame, dict]:
+        redis_connection = await self.create_redis_connection()
+        data = await redis_connection.get(str(user_id))
+        if not data:
+            data_list = await self.quiz_result_crud.get_all(user_id=user_id)
+            data_dict = {index: item for index, item in enumerate(data_list)}
+            return data_dict
+        else:
+            data_list = json.loads(data)
+            data_frame = pd.DataFrame(data_list)
+            return data_frame
+
+    async def verification_of_belonging_to_one_company(self, user_email: str, user_id: int):
+        auth_user = await self.find_auth_user_by_email(user_email)
+
+        user = await self.find_user_by_user_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="No user found")
+
+        company_user = await self.membership_crud.get_by_field(user_id, field_name='user_id')
+        company_auth_user = await self.membership_crud.get_by_field(auth_user.user_id, field_name='user_id')
+        if company_user.company_id != company_auth_user.company_id:
+            raise HTTPException(status_code=403, detail="Forbidden download file")
+
+

@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Body, Path
-from fastapi_pagination import Page, Params, paginate
+from typing import List
 
-from schemas.quizzes import *
-from schemas.questions import *
-from schemas.answers import *
+from fastapi import APIRouter, Depends, HTTPException, Body, Path, Response
+from fastapi_pagination import Page, Params, paginate
+from fastapi.responses import FileResponse
+
+from schemas.quizzes import QuizCreate, QuizUpdate, UserAnswersCreate, AnswerResponse, QuestionResponse, QuizResponse, QuizResultResponse, UserAnswersResponse, QuizResultCreate
+from schemas.questions import QuestionUpdate
+from schemas.answers import AnswerUpdate
 from services.company import CompanyService
 from services.quizzes import QuizService
 from utils.dependencies import get_company_service, get_quiz_service
@@ -242,3 +245,40 @@ async def create_quiz_result(
         raise exc
 
     return created_quiz_result
+
+
+@quiz_router.get("/export/json/{user_id}")
+async def export_json_data(
+        user_id: int,
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service),
+        quiz_service: QuizService = Depends(get_quiz_service),
+):
+    try:
+        data_dict = await quiz_service.export_json_data_by_user_id(user_id)
+
+    except HTTPException as exc:
+        raise exc
+    return data_dict
+
+
+@quiz_router.get("/export/csv/{user_id}/download/")
+async def export_csv_data(
+        user_id: int,
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service),
+        quiz_service: QuizService = Depends(get_quiz_service),
+):
+    try:
+        # Check if the user is the owner or admin of the company
+        await quiz_service.verification_of_belonging_to_one_company(user_email, user_id)
+
+        data_frame = await quiz_service.export_csv_data_by_user_id(user_id)
+
+    except HTTPException as exc:
+        raise exc
+    csv_filename = f"user_{user_id}_data.csv"
+
+    data_frame.to_csv(csv_filename, index=False)
+
+    return FileResponse(csv_filename, filename=f'user_{user_id}_data.csv', media_type='multipart/form-data')

@@ -92,7 +92,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/var/lib/redis/data
+      - redis:/var/lib/redis/data
     healthcheck:
       test: ["CMD", "redis-cli", "-h", "localhost", "ping"]
       interval: 30s
@@ -109,6 +109,6 @@ networks:
     driver: bridge
 
 volumes:
-  redis-data:
+  redis:
   database:
   database_test:
