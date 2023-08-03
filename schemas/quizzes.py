@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel, field_validator, constr, EmailStr, Field
 from .questions import QuestionCreate, QuestionBase, QuestionUpdate
 from .answers import AnswerBase
+from datetime import datetime
 
 
 class TunedModel(BaseModel):
@@ -43,6 +44,36 @@ class QuizUpdate(BaseModel):
     is_active: Optional[bool]
 
 
+# # # QUIZ RESULT # # #
+class QuizResultBase(TunedModel):
+    result_id: int
+    user_id: int
+    quiz_id: int
+    question_id: int
+    user_answer_id: int
+    result: bool
+
+
+class QuizResultCreate(BaseModel):
+    user_id: int
+
+
+# # # USER ANSWERS # # #
+class UserAnswersBase(BaseModel):
+    user_answer_id: int
+    user_id: int
+    quiz_id: int
+    question_id: int
+    answer_id: int
+    timestamp: datetime
+
+
+class UserAnswersCreate(BaseModel):
+    quiz_id: int
+    question_id: int
+    answer_id: int
+
+
 # Response Schemas
 
 class AnswerResponse(AnswerBase):
@@ -57,6 +88,9 @@ class QuizResponse(QuizBase):
     pass
 
 
-class QuizResultResponse(TunedModel):
-    result_id: int
-    timestamp: str
+class QuizResultResponse(QuizResultBase):
+    pass
+
+
+class UserAnswersResponse(UserAnswersBase):
+    pass

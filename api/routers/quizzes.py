@@ -162,3 +162,84 @@ async def update_answer(
         raise exc
 
     return updated_answer
+
+
+@quiz_router.get("/company/{company_id}/quiz/{quiz_id}/questions/", response_model=Page[QuestionResponse])
+async def get_all_question_by_quiz_id(
+        company_id: int = Path(...),
+        quiz_id: int = Path(...),
+        params: Params = Depends(),
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service),
+        quiz_service: QuizService = Depends(get_quiz_service),
+):
+    try:
+        # Check if the user is the owner or admin of the company
+        await company_service.check_who_this_user_in_company_admin_or_owner_by_company_id(user_email, company_id)
+
+        # Retrieve quizzes by company ID
+        quizzes = await quiz_service.get_all_questions(quiz_id)
+
+    except HTTPException as exc:
+        raise exc
+
+    return paginate(quizzes, params)
+
+@quiz_router.get("/company/{company_id}/quizzes/question/{question_id}/", response_model=Page[AnswerResponse])
+async def get_all_answers_by_question_id(
+        company_id: int = Path(...),
+        question_id: int = Path(...),
+        params: Params = Depends(),
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service),
+        quiz_service: QuizService = Depends(get_quiz_service),
+):
+    try:
+        # Check if the user is the owner or admin of the company
+        await company_service.check_who_this_user_in_company_admin_or_owner_by_company_id(user_email, company_id)
+
+        # Retrieve quizzes by company ID
+        quizzes = await quiz_service.get_all_answer(question_id)
+
+    except HTTPException as exc:
+        raise exc
+
+    return paginate(quizzes, params)
+
+
+@quiz_router.post("/company/{company_id}/quiz/{quiz_id}/question/{question_id}/user_answer/", response_model=UserAnswersResponse)
+async def create_user_answer(
+        company_id: int,
+        user_answer_data: UserAnswersCreate = Body(),
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service),
+        quiz_service: QuizService = Depends(get_quiz_service),
+):
+    try:
+        # Check if the user is a member of the company
+        await company_service.check_user_in_company_by_email(company_id, user_email)
+
+        # Create the user answer
+        created_user_answer = await quiz_service.create_user_answer(user_email, user_answer_data)
+
+    except HTTPException as exc:
+        raise exc
+
+    return created_user_answer
+
+
+@quiz_router.post("/companies/quizzes/result/", response_model=List[QuizResultResponse])
+async def create_quiz_result(
+        quiz_result_data: QuizResultCreate = Body(),
+        user_email: str = Depends(get_user_data),
+        company_service: CompanyService = Depends(get_company_service),
+        quiz_service: QuizService = Depends(get_quiz_service),
+):
+    try:
+        # Create the quiz result
+        created_quiz_result = await quiz_service.create_quiz_result(quiz_result_data)
+
+    except HTTPException as exc:
+        raise exc
+
+    return created_quiz_result
