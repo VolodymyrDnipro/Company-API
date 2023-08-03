@@ -8,14 +8,14 @@ from sqlalchemy import MetaData
 from fastapi import Depends
 
 
-async def get_redis_client() -> asyncio_redis.Connection:
-    """Dependency for getting Redis client"""
-    connection = await asyncio_redis.Connection.create(host='localhost', port=6379)
-    try:
-        yield connection
-    finally:
-        connection.close()
-        await connection.wait_closed()
+async def create_redis_connection():
+    # Параметри підключення до Redis
+    redis_host = config.settings.REDIS_HOST
+    redis_port = config.settings.REDIS_PORT
+
+    redis_connection = await asyncio_redis.Connection.create(host=redis_host, port=redis_port)
+    return redis_connection
+
 
 metadata = MetaData()
 

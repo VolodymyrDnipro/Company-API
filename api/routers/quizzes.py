@@ -238,7 +238,6 @@ async def create_quiz_result(
     try:
         # Create the quiz result
         created_quiz_result = await quiz_service.create_quiz_result(quiz_result_data)
-
     except HTTPException as exc:
         raise exc
 

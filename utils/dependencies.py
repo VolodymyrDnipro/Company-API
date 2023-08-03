@@ -22,3 +22,4 @@ def get_company_service(session: AsyncSession = Depends(get_session)) -> Company
 
 def get_quiz_service(session: AsyncSession = Depends(get_session)) -> QuizService:
     return QuizService(session)
+
