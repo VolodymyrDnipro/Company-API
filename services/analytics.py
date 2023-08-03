@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 
 from fastapi import HTTPException, status
 import json
@@ -7,14 +7,12 @@ import asyncio_redis
 import config
 import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models.models import *
-from schemas.company import *
-from schemas.quizzes import *
-from schemas.questions import *
-from schemas.answers import *
+from db.models.models import (Answer, Company, User, CompanyMembership, CompanyRequest, CompanyRole, Quiz, QuizResult,
+                              Question, UserAnswers)
+from schemas.quizzes import QuizCreate, QuizUpdate, UserAnswersCreate, QuizResultCreate
+from schemas.questions import QuestionUpdate
+from schemas.answers import AnswerUpdate
 from managers.base_manager import CRUDBase
-from schemas.users import ShowUser
-
 
 class AnalyticsService:
     def __init__(self, session: AsyncSession):

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 
 from fastapi import HTTPException, status
 import json
@@ -7,13 +7,12 @@ import asyncio_redis
 import config
 import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models.models import *
-from schemas.company import *
-from schemas.quizzes import *
-from schemas.questions import *
-from schemas.answers import *
+from db.models.models import (Answer, Company, User, CompanyMembership, CompanyRequest, CompanyRole, Quiz, QuizResult,
+                              Question, UserAnswers)
+from schemas.quizzes import QuizCreate, QuizUpdate, UserAnswersCreate, QuizResultCreate
+from schemas.questions import QuestionUpdate
+from schemas.answers import AnswerUpdate
 from managers.base_manager import CRUDBase
-from schemas.users import ShowUser
 
 
 class QuizService:
@@ -276,16 +275,12 @@ class QuizService:
         data = await redis_connection.get(str(user_id))
         if not data:
             data_list = await self.quiz_result_crud.get_all(user_id=user_id)
-
-            # Convert the list to a dictionary where keys are the indices and values are the items
             data_dict = {index: item for index, item in enumerate(data_list)}
             return data_dict
-
         else:
-            # Convert the byte string to a list of dictionaries
             data_list = json.loads(data)
-            df = pd.DataFrame(data_list)
-            return df
+            data_frame = pd.DataFrame(data_list)
+            return data_frame
 
     async def verification_of_belonging_to_one_company(self, user_email: str, user_id: int):
         auth_user = await self.find_auth_user_by_email(user_email)

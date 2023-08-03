@@ -4,8 +4,10 @@ from typing import List, Dict
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models.models import *
-from schemas.company import *
+from db.models.models import (Company, User, CompanyMembership, CompanyRequest, CompanyRole, RoleType, RequestCreatedBy,
+                              RequestStatus)
+from schemas.company import (CompanyCreate, UpdateCompany, UpdateCompanyMembershipRequest, UserLeaveCompanyRequest,
+                             UpdateCompanyRequest, UpdateCompanyRoleRequest)
 from managers.base_manager import CRUDBase
 from schemas.users import ShowUser
 

@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Body, Path
 from fastapi_pagination import Page, Params, paginate
 
-from schemas.company import *
+from schemas.company import (ShowCompany, CompanyCreate, UpdateCompany, UpdateCompanyResponse, ShowCompanyRequest,
+                             DeactivatedCompanyRequestResponse, UpdateCompanyRequestResponse, UpdateCompanyRequest,
+                             RequestStatus, ShowCompanyMembership, DeactivateCompanyMembershipResponse,
+                             UpdateCompanyMembershipRequest, UserLeaveCompanyResponse, UserLeaveCompanyRequest,
+                             UpdateCompanyRoleResponse, UpdateCompanyRoleRequest, RoleType)
 from schemas.users import ShowUser
 from services.company import CompanyService
 from utils.dependencies import get_company_service

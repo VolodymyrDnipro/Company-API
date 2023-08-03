@@ -1,10 +1,12 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Body, Path, Response
 from fastapi_pagination import Page, Params, paginate
 from fastapi.responses import FileResponse
 
-from schemas.quizzes import *
-from schemas.questions import *
-from schemas.answers import *
+from schemas.quizzes import QuizCreate, QuizUpdate, UserAnswersCreate, AnswerResponse, QuestionResponse, QuizResponse, QuizResultResponse, UserAnswersResponse, QuizResultCreate
+from schemas.questions import QuestionUpdate
+from schemas.answers import AnswerUpdate
 from services.company import CompanyService
 from services.quizzes import QuizService
 from utils.dependencies import get_company_service, get_quiz_service
@@ -271,12 +273,12 @@ async def export_csv_data(
         # Check if the user is the owner or admin of the company
         await quiz_service.verification_of_belonging_to_one_company(user_email, user_id)
 
-        df = await quiz_service.export_csv_data_by_user_id(user_id)
+        data_frame = await quiz_service.export_csv_data_by_user_id(user_id)
 
     except HTTPException as exc:
         raise exc
     csv_filename = f"user_{user_id}_data.csv"
 
-    df.to_csv(csv_filename, index=False)
+    data_frame.to_csv(csv_filename, index=False)
 
     return FileResponse(csv_filename, filename=f'user_{user_id}_data.csv', media_type='multipart/form-data')
