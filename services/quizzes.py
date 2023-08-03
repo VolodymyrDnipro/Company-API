@@ -1,12 +1,12 @@
 from fastapi import HTTPException, status
-from typing import List, Dict
-
+import json
 from datetime import datetime, timedelta
-
-from sqlalchemy.exc import NoResultFound
+import asyncio_redis
+import config
+from asyncio_redis import Connection
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func
-
+# from db.session import create_redis_connection
 from db.models.models import *
 from schemas.company import *
 from schemas.quizzes import *
@@ -211,6 +211,7 @@ class QuizService:
         for quiz_result in quiz_results:
             await self.quiz_result_crud.create(quiz_result)
         await self.calculate_and_update_average_score(user.user_id)
+        await self.save_data_to_redis(user.user_id)
         return quiz_results
 
     async def calculate_and_update_average_score(self, user_id: int) -> int:
@@ -226,3 +227,33 @@ class QuizService:
         await self.user_crud.update(user, user_data)
 
         return true_count
+
+    async def save_data_to_redis(self, user_id: int):
+        redis_connection = await self.create_redis_connection()
+
+        user = await self.find_user_by_user_id(user_id)
+        company = await self.membership_crud.get_by_field(user.user_id, field_name='user_id')
+        quiz_results = await self.quiz_result_crud.get_all(user_id=user.user_id)
+
+        quiz_results_with_company = []
+        for quiz_result in quiz_results:
+            quiz_result_with_company = {
+                'user_id': quiz_result.user_id,
+                'quiz_id': quiz_result.quiz_id,
+                'question_id': quiz_result.question_id,
+                'user_answer_id': quiz_result.user_answer_id,
+                'result': quiz_result.result,
+                'company_id': company.company_id
+            }
+            quiz_results_with_company.append(quiz_result_with_company)
+
+        quiz_results_json = json.dumps(quiz_results_with_company)
+        await redis_connection.set(str(user.user_id), quiz_results_json)
+        redis_connection.close()
+
+    async def create_redis_connection(self):
+        redis_host = config.settings.REDIS_HOST
+        redis_port = config.settings.REDIS_PORT
+
+        redis_connection = await asyncio_redis.Connection.create(host=redis_host, port=redis_port)
+        return redis_connection

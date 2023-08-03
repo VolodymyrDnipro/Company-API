@@ -23,7 +23,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
-      redis_db:
+      redis:
         condition: service_healthy
 
   database:
@@ -83,7 +83,7 @@ services:
       timeout: 10s
       retries: 3
 
-  redis_db:
+  redis:
     container_name: redis_db
     image: redis:7.0-alpine
     restart: on-failure
