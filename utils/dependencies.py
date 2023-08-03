@@ -6,6 +6,7 @@ from services.users import UsersService
 from services.auth import AuthService
 from services.company import CompanyService
 from services.quizzes import QuizService
+from services.analytics import AnalyticsService
 
 
 def get_users_service(session: AsyncSession = Depends(get_session)) -> UsersService:
@@ -22,4 +23,9 @@ def get_company_service(session: AsyncSession = Depends(get_session)) -> Company
 
 def get_quiz_service(session: AsyncSession = Depends(get_session)) -> QuizService:
     return QuizService(session)
+
+
+def get_analytics_service(session: AsyncSession = Depends(get_session)) -> AnalyticsService:
+    return AnalyticsService(session)
+
 

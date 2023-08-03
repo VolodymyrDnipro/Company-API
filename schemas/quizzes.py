@@ -94,3 +94,4 @@ class QuizResultResponse(QuizResultBase):
 
 class UserAnswersResponse(UserAnswersBase):
     pass
+
