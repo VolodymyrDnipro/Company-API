@@ -39,6 +39,7 @@ class QuizResult(Base):
     question_id = Column(Integer, ForeignKey('questions.question_id'), nullable=False)
     user_answer_id = Column(Integer, ForeignKey('user_answers.user_answer_id'), nullable=False)
     result = Column(Boolean, default=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
     # Relationship with User model
     user = relationship("User", back_populates="quiz_results")

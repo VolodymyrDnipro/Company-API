@@ -235,7 +235,6 @@ async def create_user_answer(
 async def create_quiz_result(
         quiz_result_data: QuizResultCreate = Body(),
         user_email: str = Depends(get_user_data),
-        company_service: CompanyService = Depends(get_company_service),
         quiz_service: QuizService = Depends(get_quiz_service),
 ):
     try:
@@ -251,7 +250,6 @@ async def create_quiz_result(
 async def export_json_data(
         user_id: int,
         user_email: str = Depends(get_user_data),
-        company_service: CompanyService = Depends(get_company_service),
         quiz_service: QuizService = Depends(get_quiz_service),
 ):
     try:
@@ -266,7 +264,6 @@ async def export_json_data(
 async def export_csv_data(
         user_id: int,
         user_email: str = Depends(get_user_data),
-        company_service: CompanyService = Depends(get_company_service),
         quiz_service: QuizService = Depends(get_quiz_service),
 ):
     try:

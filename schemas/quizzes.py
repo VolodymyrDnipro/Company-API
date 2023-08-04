@@ -2,7 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel, field_validator, constr, EmailStr, Field
 from .questions import QuestionCreate, QuestionBase, QuestionUpdate
 from .answers import AnswerBase
-from datetime import datetime
+from datetime import datetime, date
 
 
 class TunedModel(BaseModel):
