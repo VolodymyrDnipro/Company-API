@@ -1,17 +1,11 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Body, Path, Response, Query
-from fastapi_pagination import Page, Params, paginate
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException,Path, Query
 from datetime import date
 
-from schemas.questions import QuestionUpdate
-from schemas.answers import AnswerUpdate
 from services.company import CompanyService
-from services.users import UsersService
-from services.quizzes import QuizService
 from services.analytics import AnalyticsService
-from utils.dependencies import get_company_service, get_quiz_service, get_analytics_service, get_users_service
+from utils.dependencies import get_company_service, get_analytics_service
 from api.routers.users import get_user_data
 
 analytics_router = APIRouter()

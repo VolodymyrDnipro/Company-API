@@ -1,18 +1,10 @@
-from typing import Union, List
+from typing import List
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from datetime import date
-import json
-from datetime import datetime, timedelta
-import asyncio_redis
-import config
-import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models.models import (Answer, Company, User, CompanyMembership, CompanyRequest, CompanyRole, Quiz, QuizResult,
                               Question, UserAnswers)
-from schemas.quizzes import QuizCreate, QuizUpdate, UserAnswersCreate, QuizResultCreate
-from schemas.questions import QuestionUpdate
-from schemas.answers import AnswerUpdate
 from managers.base_manager import CRUDBase
 
 class AnalyticsService:
