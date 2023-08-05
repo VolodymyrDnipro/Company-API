@@ -8,6 +8,19 @@ from db.session import metadata
 Base = declarative_base(metadata=metadata)
 
 
+class Notification(Base):
+    __tablename__ = 'notifications'
+
+    notification_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    status = Column(Boolean, default=True)
+    text = Column(String, nullable=False)
+
+    # Relationship with User model
+    user = relationship("User", back_populates="notifications")
+
+
 class UserAnswers(Base):
     __tablename__ = 'user_answers'
 
@@ -212,3 +225,5 @@ class User(Base):
     quizzes = relationship("Quiz", back_populates="author")
     # Relationship with UserAnswer model
     user_answers = relationship("UserAnswers", back_populates="user")
+    # Relationship with Notification model
+    notifications = relationship("Notification", back_populates="user")

@@ -10,6 +10,7 @@ from api.routers.auth import auth_router
 from api.routers.company import company_router
 from api.routers.quizzes import quiz_router
 from api.routers.analytics import analytics_router
+from api.routers.notifications import notifications_router
 
 app = FastAPI()
 
@@ -47,6 +48,7 @@ main_api_router.include_router(users_router, tags=["User"])
 main_api_router.include_router(company_router, tags=["Company"])
 main_api_router.include_router(quiz_router, tags=["Quizzes"])
 main_api_router.include_router(analytics_router, tags=["Analytics"])
+main_api_router.include_router(notifications_router, tags=["Notifications"])
 app.include_router(main_api_router)
 
 if __name__ == "__main__":

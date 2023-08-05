@@ -1,6 +1,6 @@
 from typing import Union, List
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 import json
 from datetime import datetime, timedelta
 import asyncio_redis
@@ -13,6 +13,7 @@ from schemas.quizzes import QuizCreate, QuizUpdate, UserAnswersCreate, QuizResul
 from schemas.questions import QuestionUpdate
 from schemas.answers import AnswerUpdate
 from managers.base_manager import CRUDBase
+from services.notifications import NotificationsService
 
 
 class QuizService:
@@ -27,6 +28,7 @@ class QuizService:
         self.question_crud = CRUDBase[Question](Question, session)
         self.answers_crud = CRUDBase[Answer](Answer, session)
         self.user_answer_crud = CRUDBase[UserAnswers](UserAnswers, session)
+        self.notifications_service = NotificationsService(session)
 
     async def find_auth_user_by_email(self, user_email: str) -> User:
         return await self.user_crud.get_by_field(user_email, field_name='email')
@@ -42,6 +44,9 @@ class QuizService:
 
     async def get_all_quizzes(self) -> List[Quiz]:
         return await self.quizzes_crud.get_all()
+
+    async def find_all_company_members(self, company_id) -> List[CompanyMembership]:
+        return await self.membership_crud.get_all(company_id=company_id)
 
     async def get_all_questions(self, quiz_id: int) -> List[Question]:
         return await self.question_crud.get_all(quiz_id=quiz_id)
@@ -103,6 +108,11 @@ class QuizService:
                     is_correct=answer_data.is_correct
                 )
                 await self.answers_crud.create(answer)
+
+        company_members = await self.find_all_company_members(company.company_id)
+        for member in company_members:
+            notification_text = f"New quiz '{created_quiz.quiz_id}' is available! Take the quiz now!"
+            await self.notifications_service.create_notification(user_id=member.user_id, text=notification_text)
 
         return created_quiz
 
