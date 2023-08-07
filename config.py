@@ -10,6 +10,8 @@ TEST_DATABASE_URL = env.str("TEST_DATABASE_URL", default="postgresql+asyncpg://p
 ACCESS_TOKEN_EXPIRE_MINUTES: int = env.int("ACCESS_TOKEN_EXPIRE_MINUTES", default=3000)
 SECRET_KEY: str = env.str("SECRET_KEY", default="cAtwa1kkEy")
 ALGORITHM: str = env.str("ALGORITHM", default="HS256")
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 
 
 class Settings(BaseSettings):

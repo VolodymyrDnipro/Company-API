@@ -45,14 +45,23 @@ class QuizService:
     async def get_all_quizzes(self) -> List[Quiz]:
         return await self.quizzes_crud.get_all()
 
-    async def find_all_company_members(self, company_id) -> List[CompanyMembership]:
-        return await self.membership_crud.get_all(company_id=company_id)
+    async def get_all_company_quizzes(self, company_id: int) -> List[Quiz]:
+        return await self.quizzes_crud.get_all(company_id=company_id, is_active=True)
+
+    async def find_all_company_members(self) -> List[CompanyMembership]:
+        return await self.membership_crud.get_all(is_active=True)
+
+    async def find_all_company_members_by_company_id(self, company_id) -> List[CompanyMembership]:
+        return await self.membership_crud.get_all(company_id=company_id, is_active=True)
 
     async def get_all_questions(self, quiz_id: int) -> List[Question]:
         return await self.question_crud.get_all(quiz_id=quiz_id)
 
     async def get_all_answer(self, question_id: int) -> List[Answer]:
         return await self.answers_crud.get_all(question_id=question_id)
+
+    async def get_all_user_answers(self, user_id: int, quiz_id: int) -> List[UserAnswers]:
+        return await self.user_answer_crud.get_all(user_id=user_id, quiz_id=quiz_id)
 
     async def get_question_by_question_id(self, question_id: int) -> Quiz:
         return await self.question_crud.get_by_field(question_id, field_name='question_id')
@@ -109,7 +118,7 @@ class QuizService:
                 )
                 await self.answers_crud.create(answer)
 
-        company_members = await self.find_all_company_members(company.company_id)
+        company_members = await self.find_all_company_members_by_company_id(company.company_id)
         for member in company_members:
             notification_text = f"New quiz '{created_quiz.quiz_id}' is available! Take the quiz now!"
             await self.notifications_service.create_notification(user_id=member.user_id, text=notification_text)
@@ -304,4 +313,45 @@ class QuizService:
         if company_user.company_id != company_auth_user.company_id:
             raise HTTPException(status_code=403, detail="Forbidden download file")
 
+    async def create_notifications(self):
+        current_date = datetime.now()
 
+        all_users = await self.find_all_company_members()
+
+        for user in all_users:
+            user_id = user.user_id
+            company_id = user.company_id
+
+            quizzes = await self.get_all_company_quizzes(company_id)
+
+            for quiz in quizzes:
+                quiz_id = quiz.quiz_id
+                frequency = quiz.frequency_in_days
+
+                questions = await self.get_all_questions(quiz_id)
+
+                check_user_answers = await self.get_all_user_answers(user_id, quiz_id)
+
+                if not check_user_answers:
+                    notification_text = f"Quiz {quiz.name} is available! Take the test right now!"
+                    await self.notifications_service.create_notification(user_id=user_id, text=notification_text)
+
+                if len(check_user_answers) < len(questions):
+                    notification_text = f"Complete the quiz {quiz.name}"
+                    await self.notifications_service.create_notification(user_id=user_id, text=notification_text)
+
+                if len(check_user_answers) == len(questions):
+                    last_user_answer = None
+                    max_timestamp = None
+
+                    for answer in check_user_answers:
+                        if max_timestamp is None or answer.timestamp > max_timestamp:
+                            max_timestamp = answer.timestamp
+                            last_user_answer = answer
+
+                    if last_user_answer is not None and current_date - last_user_answer.timestamp >= timedelta(
+                            days=frequency):
+                        notification_text = f"The frequency in days {frequency} has already passed. Take the {quiz.name} test now!"
+                        await self.notifications_service.create_notification(user_id=user_id, text=notification_text)
+                    else:
+                        continue
