@@ -12,6 +12,7 @@ SECRET_KEY: str = env.str("SECRET_KEY", default="cAtwa1kkEy")
 ALGORITHM: str = env.str("ALGORITHM", default="HS256")
 
 
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
     LOG_LEVEL: str = "DEBUG"
@@ -39,6 +40,9 @@ class Settings(BaseSettings):
     # redis
     REDIS_HOST: str
     REDIS_PORT: int
+
+    CELERY_BROKER_URL: str
+    CELERY_RESULT_BACKEND: str
 
 
 settings = Settings()

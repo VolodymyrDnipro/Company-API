@@ -7,7 +7,6 @@ from services.company import CompanyService
 from services.analytics import AnalyticsService
 from utils.dependencies import get_company_service, get_analytics_service
 from api.routers.users import get_user_data
-
 analytics_router = APIRouter()
 
 
