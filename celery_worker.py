@@ -1,11 +1,11 @@
 from celery.schedules import crontab
 from celery import Celery
-import config
+from config import settings
 from tasks.notification import create_notifications
 
 celery = Celery(__name__)
-celery.conf.broker_url = config.CELERY_BROKER_URL
-celery.conf.result_backend = config.CELERY_RESULT_BACKEND
+celery.conf.broker_url = settings.CELERY_BROKER_URL
+celery.conf.result_backend = settings.CELERY_RESULT_BACKEND
 
 celery.conf.beat_schedule = {
     "check_test_times_task": {

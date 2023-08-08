@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from typing import List
 from db.models.models import CompanyMembership, Quiz, Question, UserAnswers, Notification
-
+from logger import logger
 from sqlalchemy.orm import sessionmaker
 
 
@@ -18,7 +18,7 @@ def get_all_company_members(connection):
         session = Session()
         all_members = session.query(CompanyMembership).all()
     except Exception as e:
-        print(f"Error occurred: {e}")
+        logger.error(f"Error occurred: {e}")
     finally:
         session.close()
     return all_members
@@ -31,7 +31,7 @@ def get_all_company_quizzes(connection, company_id: int) -> List[Quiz]:
         session = Session()
         all_quizzes = session.query(Quiz).filter_by(company_id=company_id).all()
     except Exception as e:
-        print(f"Error occurred: {e}")
+        logger.error(f"Error occurred: {e}")
     finally:
         session.close()
     return all_quizzes
@@ -43,7 +43,7 @@ def get_all_questions(connection, quiz_id):
         session = Session()
         all_questions = session.query(Question).filter_by(quiz_id=quiz_id).all()
     except Exception as e:
-        print(f"Error occurred: {e}")
+        logger.error(f"Error occurred: {e}")
     finally:
         session.close()
     return all_questions
@@ -56,7 +56,7 @@ def get_all_user_answers(connection, user_id, quiz_id):
         session = Session()
         all_user_answers = session.query(UserAnswers).filter_by(user_id=user_id, quiz_id=quiz_id).all()
     except Exception as e:
-        print(f"Error occurred: {e}")
+        logger.error(f"Error occurred: {e}")
     finally:
         session.close()
     return all_user_answers
@@ -70,7 +70,7 @@ def create_notification(connection, user_id, notification_text):
         session.add(notification)
         session.commit()
     except Exception as e:
-        print(f"Error occurred: {e}")
+        logger.error(f"Error occurred: {e}")
         session.rollback()
     finally:
         session.close()
